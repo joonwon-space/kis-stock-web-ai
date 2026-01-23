@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // 개발 환경에서는 Vite Proxy(/api)를 사용하고, 프로덕션에서는 실제 API URL 사용
+  baseURL: import.meta.env.MODE === 'development' ? '/api' : import.meta.env.VITE_API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
