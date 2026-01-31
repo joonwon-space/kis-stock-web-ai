@@ -4,22 +4,27 @@
  */
 
 import { useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../stores/authStore';
 import type { LoginRequest, SignupRequest } from '../types/auth.types';
 
 /**
  * 로그인 Mutation Hook
- * 성공 시 자동으로 토큰을 스토어에 저장
+ * 성공 시 자동으로 토큰을 스토어에 저장하고 사용자 정보 조회
  */
 export const useLogin = () => {
   const login = useAuthStore((state) => state.login);
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
+      // 1. 토큰 저장
       login(response.access_token);
+
+      // 2. 사용자 정보 조회 쿼리 invalidate (useMe가 자동으로 실행됨)
+      await queryClient.invalidateQueries({ queryKey: ['me'] });
     },
   });
 };
