@@ -76,6 +76,74 @@ proxy: {
 }
 ```
 
+## 배포 (Deployment)
+
+### Vercel 배포
+
+이 프로젝트는 Vercel을 통해 배포됩니다.
+
+#### 설정 파일
+
+`vercel.json` 파일이 프로젝트 루트에 포함되어 있으며, 다음을 설정합니다:
+
+- **SPA Routing**: 모든 경로를 `/index.html`로 리다이렉트하여 새로고침 시 404 에러 방지
+- **보안 헤더**: XSS, Clickjacking 등 기본 보안 위협 방어
+
+#### 배포 절차
+
+1. **Vercel 프로젝트 연결**
+   - Vercel 대시보드에서 "New Project" 클릭
+   - GitHub 저장소 연결 (`joonwon-space/kis-stock-web-ai`)
+   - Framework Preset: **Vite** (자동 감지)
+   - Build Command: `npm run build` (자동 설정)
+   - Output Directory: `dist` (자동 설정)
+
+2. **환경 변수 설정**
+
+   Vercel 대시보드 > Settings > Environment Variables에서 다음을 추가:
+
+   ```
+   VITE_API_URL=https://your-backend-api.run.app
+   ```
+
+   > ⚠️ **중요**: Vite 환경변수는 반드시 `VITE_` 접두사가 필요합니다.
+
+3. **자동 배포**
+   - `main` 브랜치에 Push 시 프로덕션 배포
+   - Pull Request 생성 시 Preview 배포 자동 생성
+
+#### 환경별 API URL
+
+- **개발 환경**: `/api` (Vite Proxy를 통해 `http://127.0.0.1:8000`로 프록시)
+- **프로덕션 환경**: `VITE_API_URL` 환경변수 사용
+
+```typescript
+// src/api/axios.ts
+const apiClient = axios.create({
+  baseURL: import.meta.env.MODE === 'development'
+    ? '/api'
+    : import.meta.env.VITE_API_URL,
+});
+```
+
+#### CORS 설정 (백엔드)
+
+프로덕션 배포 시 백엔드에서 Vercel 도메인을 CORS 허용 목록에 추가해야 합니다:
+
+```python
+# 예시 (FastAPI)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://your-app.vercel.app",
+        "https://your-app-*.vercel.app",  # Preview 배포
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
 ## License
 
 Private Project
