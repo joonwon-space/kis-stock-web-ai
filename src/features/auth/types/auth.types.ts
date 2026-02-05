@@ -8,6 +8,7 @@ export interface User {
   email: string;
   full_name: string | null;
   is_active: boolean;
+  created_at: string;
   auth_provider: string;
 }
 
